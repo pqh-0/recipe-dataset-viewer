@@ -8,7 +8,9 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    return pd.read_csv("recipes-with-nutrition.csv")
+    return pd.read_csv(
+    "https://huggingface.co/datasets/datahiveai/recipes-with-nutrition/resolve/main/recipes-with-nutrition.csv"
+)
 
 df = load_data()
 
