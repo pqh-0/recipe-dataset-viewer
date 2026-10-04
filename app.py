@@ -103,5 +103,15 @@ st.write(
 st.dataframe(
     page_df,
     use_container_width=True,
-    height=650
+    height=650,
+    column_config={
+        "image_url": st.column_config.ImageColumn(
+            "Ảnh",
+            width="small"
+        ),
+        "url": st.column_config.LinkColumn(
+            "Công thức",
+            display_text="Xem công thức"
+        )
+    }
 )
