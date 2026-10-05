@@ -6,11 +6,11 @@ st.set_page_config(
     layout="wide"
 )
 
+
 @st.cache_data
 def load_data():
-    return pd.read_csv(
-    "https://huggingface.co/datasets/datahiveai/recipes-with-nutrition/resolve/main/recipes-with-nutrition.csv"
-)
+    return pd.read_csv("recipes_clean.csv")
+
 
 df = load_data()
 
@@ -20,45 +20,68 @@ st.write(
     f"Dataset gồm **{len(df):,} dòng** và **{len(df.columns)} cột**."
 )
 
+
+# =========================
+# TÌM KIẾM
+# =========================
+
 search = st.text_input(
-    "🔎 Tìm kiếm",
-    placeholder="Nhập tên món, nguyên liệu..."
+    "🔎 Tìm kiếm món ăn / nguyên liệu",
+    placeholder="Nhập tên món hoặc nguyên liệu..."
 )
 
 if search:
-    mask = df.astype(str).apply(
-        lambda col: col.str.contains(
-            search,
-            case=False,
-            na=False
-        )
-    ).any(axis=1)
+    search_lower = search.lower()
+
+    mask = (
+        df["recipe_name"]
+        .astype(str)
+        .str.lower()
+        .str.contains(search_lower, na=False)
+        |
+        df["ingredients"]
+        .astype(str)
+        .str.lower()
+        .str.contains(search_lower, na=False)
+    )
 
     filtered_df = df[mask]
+
 else:
     filtered_df = df
+
+
+# =========================
+# PHÂN TRANG
+# =========================
 
 PAGE_SIZE = 100
 
 total_rows = len(filtered_df)
+
 total_pages = max(
     1,
     (total_rows + PAGE_SIZE - 1) // PAGE_SIZE
 )
 
+
 if "page" not in st.session_state:
     st.session_state.page = 1
 
+
 if st.session_state.page > total_pages:
     st.session_state.page = 1
+
 
 col1, col2, col3, col4, col5 = st.columns(
     [1, 1, 2, 1, 1]
 )
 
+
 with col1:
     if st.button("⏮"):
         st.session_state.page = 1
+
 
 with col2:
     if st.button("◀"):
@@ -67,11 +90,13 @@ with col2:
             st.session_state.page - 1
         )
 
+
 with col3:
     st.markdown(
         f"<center>Page {st.session_state.page} / {total_pages}</center>",
         unsafe_allow_html=True
     )
+
 
 with col4:
     if st.button("▶"):
@@ -80,9 +105,11 @@ with col4:
             st.session_state.page + 1
         )
 
+
 with col5:
     if st.button("⏭"):
         st.session_state.page = total_pages
+
 
 start = (
     st.session_state.page - 1
@@ -93,12 +120,19 @@ end = min(
     total_rows
 )
 
+
 page_df = filtered_df.iloc[start:end].copy()
+
 
 st.write(
     f"**Showing {start + 1:,} – {end:,} "
     f"of {total_rows:,} rows**"
 )
+
+
+# =========================
+# HIỂN THỊ DATA
+# =========================
 
 st.dataframe(
     page_df,
@@ -108,10 +142,6 @@ st.dataframe(
         "image_url": st.column_config.ImageColumn(
             "Ảnh",
             width="small"
-        ),
-        "url": st.column_config.LinkColumn(
-            "Công thức",
-            display_text="Xem công thức"
         )
     }
 )
